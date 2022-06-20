@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
-    "start": "nodemon main",
+    "start": "main",
     "test": "jest"
   },
   "repository": {
