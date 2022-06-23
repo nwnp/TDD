@@ -21,6 +21,12 @@ app.use(express.json()); // body를 받기 위한
 app.use("/", indexController);
 app.use("/api", apiController);
 
+app.use((err, req, res, next) => {
+  res.status(500).json({ message: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(PORT, "번에서 대기 중");
 });
+
+module.exports = app;
