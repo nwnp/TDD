@@ -7,8 +7,15 @@ const allProducts = require("../data/all-products.json");
 productModel.create = jest.fn(); // create mock function
 productModel.find = jest.fn();
 productModel.findById = jest.fn();
+productModel.findByIdAndUpdate = jest.fn();
+productModel.findByIdAndDelete = jest.fn();
+productModel.update = jest.fn();
 
 const productId = "62b40f144699bae9886e8d5d";
+const updatedProduct = {
+  name: "updated name",
+  description: "updated description",
+};
 
 let req, res, next;
 beforeEach(() => {
@@ -114,6 +121,83 @@ describe("Product GetById", () => {
     const rejectedPromise = Promise.reject(errorMessage);
     productModel.findById.mockReturnValue(rejectedPromise);
     await productService.getProductById(req, res, next);
+    expect(next).toHaveBeenCalledWith(errorMessage);
+  });
+});
+
+describe("Product Update", () => {
+  it("should have an updateProduct function", async () => {
+    expect(typeof productService.updateProduct).toBe("function");
+  });
+
+  it("should call productService.updateProduct()", async () => {
+    req.params.productId = productId;
+    req.body = {
+      name: "updated name",
+      description: "updated description",
+    };
+    await productService.updateProduct(req, res, next);
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      req.params.productId,
+      req.body,
+      { new: true }
+    );
+  });
+
+  it("should return json body and response code 200", async () => {
+    req.params.productId = productId;
+    req.body = updatedProduct;
+    productModel.findByIdAndUpdate.mockReturnValue(updatedProduct);
+    await productService.updateProduct(req, res, next);
+    expect(res._isEndCalled).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual(updatedProduct);
+  });
+
+  it("should handle error", async () => {
+    const errorMessage = { message: "error" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.findByIdAndUpdate.mockReturnValue(rejectedPromise);
+    await productService.updateProduct(req, res, next);
+    expect(next).toHaveBeenCalledWith(errorMessage);
+  });
+});
+
+describe("Product Delete", () => {
+  it("should have a deleteProduct function", () => {
+    expect(typeof productService.deleteProduct).toBe("function");
+  });
+
+  it("should call productService.findByIdAndDelete()", async () => {
+    req.params.productId = productId;
+    await productService.deleteProduct(req, res, next);
+    expect(productModel.findByIdAndDelete).toBeCalledWith(productId);
+  });
+
+  it("should return 200 response", async () => {
+    let deleteProduct = {
+      name: "deletedProduct",
+      description: "it is deleted",
+    };
+    productModel.findByIdAndDelete.mockReturnValue(deleteProduct);
+    await productService.deleteProduct(req, res, next);
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual(deleteProduct);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+
+  it("should handle 404 when item doesnt exist", async () => {
+    productModel.findByIdAndDelete.mockReturnValue(null);
+    await productService.deleteProduct(req, res, next);
+    expect(res.statusCode).toBe(404);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+
+  it("should handle error", async () => {
+    const errorMessage = { message: "Delete error" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.findByIdAndDelete.mockReturnValue(rejectedPromise);
+    await productService.deleteProduct(req, res, next);
     expect(next).toHaveBeenCalledWith(errorMessage);
   });
 });

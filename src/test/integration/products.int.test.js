@@ -42,7 +42,30 @@ it("GET /api/product/:productId", async () => {
 
 it("GET /api/product/:productId (doesnt exsit)", async () => {
   const response = await request(app).get(
-    "/api/product/62b40f144699bae9886e8d55"
+    "/api/product/62b41a64e3ff1ff5ca0dba50"
   );
   expect(response.statusCode).toBe(404);
+});
+
+it("PUT /api/product/:productId", async () => {
+  const res = await request(app)
+    .put("/api/product/62b41a64e3ff1ff5ca0dba57")
+    .send({ name: "updated name", description: "updated description" });
+  expect(res.statusCode).toBe(200);
+  expect(res.body.name).toBe("updated name");
+  expect(res.body.description).toBe("updated description");
+});
+
+it("DELETE /api/product/:productId", async () => {
+  const res = await request(app).delete(
+    "/api/product/62b41be1bf9e5b428c9bc99d"
+  );
+  expect(res.statusCode).toBe(200);
+});
+
+it("DELETE id doesnt exist /api/product/:productId", async () => {
+  const res = await request(app).delete(
+    "/api/product/62b41c3f61cedac5d35e75c3"
+  );
+  expect(res.statusCode).toBe(404);
 });
