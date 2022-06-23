@@ -5,14 +5,11 @@ const newProduct = require("../data/new-product.json");
 
 productModel.create = jest.fn(); // create mock function
 
-let req = httpMocks.createRequest();
-let res = httpMocks.createResponse();
-let next = null;
-
+let req, res, next;
 beforeEach(() => {
   req = httpMocks.createRequest();
   res = httpMocks.createResponse();
-  next = null;
+  next = jest.fn();
 });
 
 describe("Product Controller Create", () => {
@@ -24,20 +21,28 @@ describe("Product Controller Create", () => {
     expect(typeof productService.createProduct).toBe("function");
   });
 
-  it("should call ProductModel.create", () => {
-    productService.createProduct(req, res, next);
+  it("should call ProductModel.create", async () => {
+    await productService.createProduct(req, res, next);
     expect(productModel.create).toBeCalledWith(newProduct);
   });
 
-  it("should return 201 response status code", () => {
-    productService.createProduct(req, res, next);
+  it("should return 201 response status code", async () => {
+    await productService.createProduct(req, res, next);
     expect(res.statusCode).toBe(201);
     expect(res._isEndCalled()).toBeTruthy();
   });
 
-  it("should return json body in response", () => {
+  it("should return json body in response", async () => {
     productModel.create.mockReturnValue(newProduct);
-    productService.createProduct(req, res, next);
+    await productService.createProduct(req, res, next);
     expect(res._getJSONData()).toStrictEqual(newProduct);
+  });
+
+  it("should handle error-message", async () => {
+    const errorMessage = { message: "One of property is missed" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.create.mockReturnValue(rejectedPromise);
+    await productService.createProduct(req, res, next);
+    expect(next).toBeCalledWith(errorMessage);
   });
 });
